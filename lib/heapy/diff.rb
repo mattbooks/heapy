@@ -43,13 +43,14 @@ module Heapy
 
 
     def call
-      read(@before_file) { |parsed| @before_address_hash[parsed['address']] = true }
-      read(@retained_file) { |parsed| @retained_address_hash[parsed['address']] = true } if @retained_file
+      read(@before_file) { |parsed| @before_address_hash[parsed['address']] = parsed['generation'] }
+      read(@retained_file) { |parsed| @retained_address_hash[parsed['address']] = parsed['generation'] } if @retained_file
 
       read(@after_file) do |parsed, original_line|
         address = parsed['address']
         next if previously_allocated?(address)
         next if not_retained?(address)
+        next if parsed['generation'] != @retained_address_hash[parsed['address']]
 
         @output_diff_file.puts original_line if @output_diff_file
 
